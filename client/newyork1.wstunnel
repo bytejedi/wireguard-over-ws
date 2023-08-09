@@ -1,0 +1,8 @@
+REMOTE_HOST=some.domain.com
+REMOTE_IP=
+REMOTE_PORT=58923
+LOCAL_PORT=58923
+WS_PREFIX='nginx-path-location'
+WS_PORT=443
+WS_PING=15
+WSTUNNEL_CMD=$HOME/.wstunnel/wstunnel

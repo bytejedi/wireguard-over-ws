@@ -1,0 +1,12 @@
+[Unit]
+Description=Tunnel WireGuard UDP over Websocket
+After=network.target
+
+[Service]
+Type=simple
+User=nobody
+ExecStart=/usr/local/bin/wstunnel -v --server ws://127.0.0.1:55555 --restrictTo=127.0.0.1:58923
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
