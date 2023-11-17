@@ -7,16 +7,16 @@ launch_wstunnel () {
     local wsport=${WS_PORT:-443}
     local lport=${LOCAL_PORT:-${rport}}
     local prefix=${WS_PREFIX:-"wstunnel"}
-    local timeout=${TIMEOUT:-"-1"}
     local cmd=${WSTUNNEL_CMD:-"wstunnel"}
-    local wsping=${WS_PING:-15}
+    local wsping=${WS_PING:-30}
 
     nohup "$cmd" \
-      --verbose \
-      --udpTimeoutSec "${timeout}" \
-      --upgradePathPrefix "${prefix}" \
-      --udp -L "127.0.0.1:${lport}:127.0.0.1:${rport}" "wss://${remote_ip}:${wsport}" \
-      --hostHeader "${remote_host}" --websocketPingFrequencySec "${wsping}" > /dev/null 2>&1 &
+      client -L "udp://127.0.0.1:${lport}:127.0.0.1:${rport}?timeout_sec=0" "wss://${remote_ip}:${wsport}" \
+      --tls-verify-certificate \
+      --tls-sni-override "${remote_host}" \
+      --http-upgrade-path-prefix "${prefix}" \
+      --http-headers "Host: ${remote_host}" \
+      --websocket-ping-frequency-sec "${wsping}" > /dev/null 2>&1 &
     echo "$!"
 }
 
