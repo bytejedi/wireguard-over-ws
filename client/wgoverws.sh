@@ -10,11 +10,10 @@ launch_wstunnel () {
     local cmd=${WSTUNNEL_CMD:-"wstunnel"}
     local wsping=${WS_PING:-30}
 
-    nohup "$cmd" \
+    env WSTUNNEL_HTTP_UPGRADE_PATH_PREFIX="${prefix}" nohup "$cmd" \
       client -L "udp://127.0.0.1:${lport}:127.0.0.1:${rport}?timeout_sec=0" "wss://${remote_ip}:${wsport}" \
       --tls-verify-certificate \
       --tls-sni-override "${remote_host}" \
-      --http-upgrade-path-prefix "${prefix}" \
       --http-headers "Host: ${remote_host}" \
       --websocket-ping-frequency-sec "${wsping}" > /dev/null 2>&1 &
     echo "$!"
@@ -38,6 +37,8 @@ pre_up () {
     # Find out current route to ${remote_ip} and make it explicit
     gw=$(route -n get "${remote_ip}" | grep -Eo "gateway:.+$" | awk '{print $2}')
     route -n add -net "${remote_ip}" "${gw}" > /dev/null 2>&1 || true
+    # Add LAN CIDR route
+    # route -n add -net 192.168.0.0/16 "${gw}" > /dev/null 2>&1 || true
     # Start wstunnel in the background
     wstunnel_pid=$(launch_wstunnel)
 
@@ -81,6 +82,8 @@ post_down () {
     fi
 
     if [[ -n "${remote_ip}" ]]; then
-	      route -n delete "${remote_ip}" > /dev/null 2>&1 || true
+        route -n delete "${remote_ip}" > /dev/null 2>&1 || true
+        # Delete LAN CIDR route
+        # route -n delete 192.168.0.0/16 > /dev/null 2>&1 || true
     fi
 }
