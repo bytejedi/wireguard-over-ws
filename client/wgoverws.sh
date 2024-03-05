@@ -37,8 +37,8 @@ pre_up () {
     # Find out current route to ${remote_ip} and make it explicit
     gw=$(route -n get "${remote_ip}" | grep -Eo "gateway:.+$" | awk '{print $2}')
     route -n add -net "${remote_ip}" "${gw}" > /dev/null 2>&1 || true
-    # Add LAN CIDR route
-    # route -n add -net 192.168.0.0/16 "${gw}" > /dev/null 2>&1 || true
+    # Route add on pre-up
+    route_add_on_pre_up "${server_tag}" "${gw}"
     # Start wstunnel in the background
     wstunnel_pid=$(launch_wstunnel)
 
@@ -47,7 +47,7 @@ pre_up () {
 }
 
 post_up () {
-    local tun="$1"
+    local tun=$1
     # Add IPv4 routes
     route add -net 0.0.0.0/1 -interface "${tun}" > /dev/null 2>&1
     route add -net 128.0.0.0/1 -interface "${tun}" > /dev/null 2>&1
@@ -83,7 +83,38 @@ post_down () {
 
     if [[ -n "${remote_ip}" ]]; then
         route -n delete "${remote_ip}" > /dev/null 2>&1 || true
-        # Delete LAN CIDR route
-        # route -n delete 192.168.0.0/16 > /dev/null 2>&1 || true
+    fi
+    # Route delete on post-down
+    route_delete_on_post_down "${server_tag}"
+}
+
+route_add_on_pre_up () {
+    local server_tag=$1
+    local gw=$2
+    local route_file="$HOME/.wstunnel/${server_tag}.route"
+
+    # Check if the file exists
+    if [ -f "$route_file" ]; then
+        # Read the file line by line
+        while IFS= read -r line; do
+            # Route add
+            echo "route -n add -net ${line} ${gw}"
+            route -n add -net "${line}" "${gw}" > /dev/null 2>&1 || true
+        done < "$route_file"
+    fi
+}
+
+route_delete_on_post_down () {
+    local server_tag=$1
+    local route_file="$HOME/.wstunnel/${server_tag}.route"
+
+    # Check if the file exists
+    if [ -f "$route_file" ]; then
+        # Read the file line by line
+        while IFS= read -r line; do
+            # Route delete
+            echo "route -n delete ${line}"
+            route -n delete "${line}" > /dev/null 2>&1 || true
+        done < "$route_file"
     fi
 }
