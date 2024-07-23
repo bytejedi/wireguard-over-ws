@@ -87,6 +87,7 @@ post_down () {
     # Route delete on post-down
     route_delete_on_post_down "${server_tag}"
     # Set DNS back
+    echo "[#] networksetup -setdnsservers Wi-Fi 223.5.5.5 119.29.29.29"
     networksetup -setdnsservers Wi-Fi 223.5.5.5 119.29.29.29 > /dev/null 2>&1 || true
 }
 
@@ -100,7 +101,7 @@ route_add_on_pre_up () {
         # Read the file line by line
         while IFS= read -r line; do
             # Route add
-            echo "route -n add -net ${line} ${gw}"
+            echo "[#] route -n add -net ${line} ${gw}"
             route -n add -net "${line}" "${gw}" > /dev/null 2>&1 || true
         done < "$route_file"
     fi
@@ -115,7 +116,7 @@ route_delete_on_post_down () {
         # Read the file line by line
         while IFS= read -r line; do
             # Route delete
-            echo "route -n delete ${line}"
+            echo "[#] route -n delete ${line}"
             route -n delete "${line}" > /dev/null 2>&1 || true
         done < "$route_file"
     fi
