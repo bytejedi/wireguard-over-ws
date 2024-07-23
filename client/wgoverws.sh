@@ -86,6 +86,8 @@ post_down () {
     fi
     # Route delete on post-down
     route_delete_on_post_down "${server_tag}"
+    # Set DNS back
+    networksetup -setdnsservers Wi-Fi 223.5.5.5 119.29.29.29 > /dev/null 2>&1 || true
 }
 
 route_add_on_pre_up () {
