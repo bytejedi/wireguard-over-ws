@@ -86,6 +86,7 @@ post_down () {
     fi
     # Route delete on post-down
     route_delete_on_post_down "${server_tag}"
+    sleep 0.1
     # Set DNS back
     echo "[#] networksetup -setdnsservers Wi-Fi 223.5.5.5 119.29.29.29"
     networksetup -setdnsservers Wi-Fi 223.5.5.5 119.29.29.29 > /dev/null 2>&1 || true
