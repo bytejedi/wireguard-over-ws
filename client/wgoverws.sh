@@ -9,13 +9,15 @@ launch_wstunnel () {
     local prefix=${WS_PREFIX:-"wstunnel"}
     local cmd=${WSTUNNEL_CMD:-"wstunnel"}
     local wsping=${WS_PING:-30}
+#    local log_file="/dev/null"
+    local log_file="$HOME/.wstunnel/$1.log"
 
     env WSTUNNEL_HTTP_UPGRADE_PATH_PREFIX="${prefix}" nohup "$cmd" \
       client -L "udp://127.0.0.1:${lport}:127.0.0.1:${rport}?timeout_sec=0" "wss://${remote_ip}:${wsport}" \
       --tls-verify-certificate \
       --tls-sni-override "${remote_host}" \
       --http-headers "Host: ${remote_host}" \
-      --websocket-ping-frequency-sec "${wsping}" > /dev/null 2>&1 &
+      --websocket-ping-frequency-sec "${wsping}" > "${log_file}" 2>&1 &
     echo "$!"
 }
 
@@ -40,7 +42,7 @@ pre_up () {
     # Route add on pre-up
     route_add_on_pre_up "${server_tag}" "${gw}"
     # Start wstunnel in the background
-    wstunnel_pid=$(launch_wstunnel)
+    wstunnel_pid=$(launch_wstunnel "${server_tag}")
 
     # save state
     echo "${wstunnel_pid}" > "$HOME/.wstunnel/${server_tag}.wstunnel.pid"
